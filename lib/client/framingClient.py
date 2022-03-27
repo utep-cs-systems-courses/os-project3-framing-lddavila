@@ -86,29 +86,48 @@ def archiver():
         print("Currently archiving the following file: " + fd)
         fileToBeArchived = os.open(fd, os.O_RDONLY)
         dataToBeArchived = os.read(fileToBeArchived,100)
-        lengthOfData = len(dataToBeArchived)
+        lengthOfData = 0
+        
         #print("Before the first whie loop")
         while len(dataToBeArchived) != 0: #this while loop gets the lenght of the data
-            dataToBeArchived = os.read(fileToBeArchived, 100)
+            if lengthOfData == 0:
+                # print("Went into length = 0")
+                lengthOfData = len(dataToBeArchived)
+                outOfBandData= [0,len(fd),len(fd),lengthOfData]
+                # print("Out of Band Data Value: ",outOfBandData)
+                outOfBandData = bytearray(outOfBandData)
+                os.write(archive,outOfBandData+(fd).encode())
+                os.write(archive,bytearray(dataToBeArchived))
+                
+                dataToBeArchived = os.read(fileToBeArchived, 100)
+            else:
+                # print("Went into length != 0")
+                lengthOfData = len(dataToBeArchived)
+                outOfBandData= [0,0,0,lengthOfData]
+                # print("Out Of Band Data values: ", outOfBandData)
+                outOfBandData = bytearray(outOfBandData)
+                os.write(archive,outOfBandData)
+                os.write(archive,bytearray(dataToBeArchived))
+                dataToBeArchived = os.read(fileToBeArchived, 100)
             #print(len(dataToBeArchived))
-            lengthOfData += len(dataToBeArchived)
+            #lengthOfData += len(dataToBeArchived)
         os.close(fileToBeArchived)
-        #print("after the first while loop")
+        # #print("after the first while loop")
         
-        fileToBeArchived = os.open(fd, os.O_RDONLY)
+        # fileToBeArchived = os.open(fd, os.O_RDONLY)
         
-        outOfBandData = [0,len(fd),len(fd),lengthOfData] #string that has "beginningofTitle,EndOfTitle,BeginningOfData,EndOfData"
-        #print(outOfBandData)
-        outOfBandData = bytearray(outOfBandData)
-        os.write(archive,outOfBandData +(fd).encode()) #writes the title of file and out of band data to archive
-        dataToBeArchived = os.read(fileToBeArchived, 100)#reads  first 100 bytes ofdata from the file to be archived
-        #print(type(dataToBeArchived))
+        # outOfBandData = [0,len(fd),len(fd),lengthOfData] #string that has "beginningofTitle,EndOfTitle,BeginningOfData,EndOfData"
+        # #print(outOfBandData)
+        # outOfBandData = bytearray(outOfBandData)
+        # os.write(archive,outOfBandData +(fd).encode()) #writes the title of file and out of band data to archive
+        # dataToBeArchived = os.read(fileToBeArchived, 100)#reads  first 100 bytes ofdata from the file to be archived
+        # #print(type(dataToBeArchived))
         
         
-        while len(dataToBeArchived) != 0:
-            os.write(archive, bytearray(dataToBeArchived)) #writes the data to the archive
-            #print(bytearray(dataToBeArchived))
-            dataToBeArchived = os.read(fileToBeArchived,100) #gets the next 100 bytes of data
+        # while len(dataToBeArchived) != 0:
+        #     os.write(archive, bytearray(dataToBeArchived)) #writes the data to the archive
+        #     #print(bytearray(dataToBeArchived))
+        #     dataToBeArchived = os.read(fileToBeArchived,100) #gets the next 100 bytes of data
     os.close(archive)
 
 if __name__ == "__main__":
